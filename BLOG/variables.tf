@@ -92,3 +92,18 @@ variable "db_identifier" {
   type        = string
   default     = "enoch-blog-db"
 }
+
+# ========================================
+# Database Credentials Variables
+# ========================================
+variable "db_username" {
+  description = "Database master username"
+  type        = string
+  default     = "admin"
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  default     = "wordpress_db"
+}
