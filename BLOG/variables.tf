@@ -105,5 +105,5 @@ variable "db_username" {
 variable "db_name" {
   description = "Database name"
   type        = string
-  default     = "wordpress_db"
+  default     = "enoch_wordpress_db"
 }
