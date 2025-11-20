@@ -60,3 +60,35 @@ variable "subnet_2_cidr" {
   type        = string
   default     = "10.0.2.0/24"
 }
+
+# ========================================
+# Database Variables
+# ========================================
+variable "db_snapshot_identifier" {
+  description = "RDS snapshot to restore from"
+  type        = string
+}
+
+variable "db_instance_class" {
+  description = "RDS instance class"
+  type        = string
+  default     = "db.t3.micro"
+}
+
+variable "db_allocated_storage" {
+  description = "Allocated storage in GB"
+  type        = number
+  default     = 20
+}
+
+variable "db_backup_retention_period" {
+  description = "Backup retention period in days"
+  type        = number
+  default     = 7
+}
+
+variable "db_identifier" {
+  description = "Database identifier"
+  type        = string
+  default     = "enoch-blog-db"
+}
