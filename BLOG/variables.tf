@@ -107,3 +107,18 @@ variable "db_name" {
   type        = string
   default     = "enoch_wordpress_db"
 }
+
+# ========================================
+# Route53 Variables
+# ========================================
+variable "domain_name" {
+  description = "Domain name for the blog"
+  type        = string
+  default     = "enoch-stack.com"
+}
+
+variable "hosted_zone_id" {
+  description = "Route53 hosted zone ID"
+  type        = string
+  default     = ""
+}
