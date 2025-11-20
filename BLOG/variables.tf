@@ -122,3 +122,12 @@ variable "hosted_zone_id" {
   type        = string
   default     = ""
 }
+
+# ========================================
+# EC2 Instance Variables
+# ========================================
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
