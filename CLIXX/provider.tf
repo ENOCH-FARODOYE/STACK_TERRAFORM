@@ -8,6 +8,7 @@ terraform {
   }
 }
 
+# Default provider (Management account)
 provider "aws" {
   region = var.aws_region
   
@@ -15,6 +16,25 @@ provider "aws" {
     tags = {
       Project     = "CliXX"
       Environment = "Management"
+      ManagedBy   = "Terraform"
+    }
+  }
+}
+
+# Dev Account provider (assumes Engineer role)
+provider "aws" {
+  alias  = "dev"
+  region = var.aws_region
+
+  assume_role {
+    role_arn     = "arn:aws:iam::${var.dev_account_id}:role/Engineer"
+    session_name = "terraform-clixx-dev"
+  }
+
+  default_tags {
+    tags = {
+      Project     = "CliXX"
+      Environment = "Dev"
       ManagedBy   = "Terraform"
     }
   }

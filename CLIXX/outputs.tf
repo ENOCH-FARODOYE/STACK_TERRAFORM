@@ -85,3 +85,18 @@ output "efs_dns_name" {
   description = "EFS DNS Name"
   value       = aws_efs_file_system.main.dns_name
 }
+# RDS Outputs
+output "rds_endpoint" {
+  description = "RDS Endpoint"
+  value       = aws_db_instance.main.endpoint
+}
+
+output "rds_instance_id" {
+  description = "RDS Instance ID"
+  value       = aws_db_instance.main.id
+}
+
+output "rds_address" {
+  description = "RDS Address (without port)"
+  value       = aws_db_instance.main.address
+}

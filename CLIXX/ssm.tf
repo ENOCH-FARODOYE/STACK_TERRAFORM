@@ -1,39 +1,31 @@
 ##############################################################################
 # SSM Parameters - Management Account
-# Will be accessed by Dev Account via cross-account role
+# Automatically populated from Dev Account resources
 ##############################################################################
 
-# EFS ID - placeholder, will be updated by Dev account
+# EFS ID - Direct reference from Dev account EFS
 resource "aws_ssm_parameter" "efs_id" {
   name        = "/clixx/efs/id"
   description = "CliXX EFS File System ID"
   type        = "String"
-  value       = "placeholder-will-be-updated-by-dev-account"
+  value       = aws_efs_file_system.main.id
 
   tags = {
     Name        = "clixx-efs-id"
     Application = "CliXX"
   }
-
-  lifecycle {
-    ignore_changes = [value]
-  }
 }
 
-# RDS Endpoint - placeholder, will be updated by Dev account
+# RDS Endpoint - Direct reference from Dev account RDS
 resource "aws_ssm_parameter" "rds_endpoint" {
   name        = "/clixx/rds/endpoint"
   description = "CliXX RDS Database Endpoint"
   type        = "String"
-  value       = "placeholder-will-be-updated-by-dev-account"
+  value       = aws_db_instance.main.endpoint
 
   tags = {
     Name        = "clixx-rds-endpoint"
     Application = "CliXX"
-  }
-
-  lifecycle {
-    ignore_changes = [value]
   }
 }
 
