@@ -40,8 +40,9 @@ resource "aws_security_group" "alb" {
 }
 
 # ========================================
+# ========================================
 # EC2 Security Group
-# Allows HTTP from ALB only
+# Allows HTTP from ALB only and SSH for troubleshooting
 # ========================================
 resource "aws_security_group" "ec2" {
   name        = "${var.project_name}-ec2-sg"
@@ -57,6 +58,15 @@ resource "aws_security_group" "ec2" {
     security_groups = [aws_security_group.alb.id]
   }
 
+  # Allow SSH from anywhere (for troubleshooting)
+  ingress {
+    description = "SSH from anywhere"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Allow all outbound traffic (for updates, etc.)
   egress {
     description = "Allow all outbound"
@@ -70,7 +80,6 @@ resource "aws_security_group" "ec2" {
     Name = "${var.project_name}-ec2-sg"
   }
 }
-
 # ========================================
 # RDS Security Group
 # Allows MySQL from EC2 only

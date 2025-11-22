@@ -27,9 +27,11 @@ resource "aws_db_instance" "wordpress" {
 
   # Backup configuration
   backup_retention_period = var.db_backup_retention_period
-  skip_final_snapshot     = true
+  skip_final_snapshot     = false
+  final_snapshot_identifier = "enoch-blog-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
   # Storage
+  storage_encrypted = true
   # allocated_storage = var.db_allocated_storage
 
   tags = {

@@ -105,7 +105,7 @@ variable "db_username" {
 variable "db_name" {
   description = "Database name"
   type        = string
-  default     = "enoch_wordpress_db"
+  default     = "wordpressdb"
 }
 
 # ========================================
@@ -151,4 +151,12 @@ variable "asg_desired_capacity" {
   description = "Desired number of instances"
   type        = number
   default     = 2
+}
+
+
+
+variable "db_password" {
+  description = "Database master password"
+  type        = string
+  sensitive   = true
 }

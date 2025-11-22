@@ -42,14 +42,26 @@ resource "aws_iam_role_policy" "ec2_ssm" {
         Resource = "arn:aws:ssm:${var.aws_region}:${var.management_account_id}:parameter/${var.project_name}/*"
       },
       {
+        Effect   = "Allow"
+        Action   = "sts:AssumeRole"
+        Resource = "*"
+      },
+      {
         Effect = "Allow"
-        Action = "sts:AssumeRole"
+        Action = [
+          "kms:Decrypt"
+        ]
         Resource = "*"
       }
     ]
   })
 }
 
+# Add SSM Session Manager support
+resource "aws_iam_role_policy_attachment" "ec2_ssm_core" {
+  role       = aws_iam_role.ec2.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
 # ========================================
 # IAM Instance Profile
 # ========================================

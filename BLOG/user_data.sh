@@ -8,22 +8,19 @@
 exec > >(tee /var/log/enoch-blog-bootstrap.log)
 exec 2>&1
 
-echo "=========================================="
 echo "Enoch Blog Bootstrap Started: $(date)"
-echo "=========================================="
 
 ##############################################################################
 # Install Required Packages
 ##############################################################################
 
 sudo dnf update -y
-sudo dnf install -y aws-cli jq git httpd php php-mysqlnd php-fpm php-json mariadb105 amazon-efs-utils
+sudo dnf install -y aws-cli jq git httpd php php-mysqlnd php-fpm php-json mariadb105 amazon-efs-utils ec2-instance-connect
 
 ##############################################################################
 #  Start Apache and Create Health Check
 ##############################################################################
 
-echo "[2] Starting Apache and creating health check..."
 sudo systemctl start httpd
 sudo systemctl enable httpd
 
@@ -43,7 +40,7 @@ echo "Region: $REGION"
 ##############################################################################
 
 MGMT_ACCOUNT="978820380225"
-ROLE_ARN="arn:aws:iam::${MGMT_ACCOUNT}:role/SSMParameterAccessRole"
+ROLE_ARN="arn:aws:iam::$${MGMT_ACCOUNT}:role/SSMParameterAccessRole"
 
 echo "Assuming role: $ROLE_ARN"
 
@@ -54,7 +51,7 @@ CREDENTIALS=$(aws sts assume-role \
     --output json)
 
 if [ $? -ne 0 ]; then
-    echo "✗ Failed to assume role in Management Account"
+    echo " Failed to assume role in Management Account"
     exit 1
 fi
 
@@ -62,12 +59,12 @@ export AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.Credentials.AccessKeyId')
 export AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey')
 export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Credentials.SessionToken')
 
-echo "✓ Successfully assumed role"
+echo " Successfully assumed role"
 
-echo "Fetching individual parameters..."
+echo "Fetching individual parameters"
 
 EFS_ID=$(aws ssm get-parameter --name "/enoch-blog/efs-id" --region $REGION --query 'Parameter.Value' --output text 2>/dev/null)
-RDS_ENDPOINT=$(aws ssm get-parameter --name "/enoch-blog/rds-endpoint" --region $REGION --query 'Parameter.Value' --output text 2>/dev/null)
+RDS_ENDPOINT="${RDS_ENDPOINT}"
 DB_NAME=$(aws ssm get-parameter --name "/enoch-blog/db-name" --region $REGION --query 'Parameter.Value' --output text 2>/dev/null)
 DB_USER=$(aws ssm get-parameter --name "/enoch-blog/db-username" --region $REGION --query 'Parameter.Value' --output text 2>/dev/null)
 DB_PASSWORD=$(aws ssm get-parameter --name "/enoch-blog/db-password" --with-decryption --region $REGION --query 'Parameter.Value' --output text 2>/dev/null)
@@ -78,7 +75,7 @@ if [ -z "$EFS_ID" ] || [ -z "$RDS_ENDPOINT" ] || [ -z "$DB_NAME" ] || [ -z "$DB_
     exit 1
 fi
 
-echo "✓ SSM parameters retrieved"
+echo " SSM parameters retrieved"
 echo "  EFS ID: $EFS_ID"
 echo "  RDS Endpoint: $RDS_ENDPOINT"
 echo "  Database: $DB_NAME"
@@ -96,10 +93,10 @@ EFS_MOUNT="/var/www/html/efs-data"
 sudo mkdir -p $EFS_MOUNT
 
 if sudo mount -t efs -o tls $EFS_ID:/ $EFS_MOUNT; then
-    echo "✓ EFS mounted"
+    echo " EFS mounted"
     echo "$EFS_ID:/ $EFS_MOUNT efs _netdev,tls 0 0" | sudo tee -a /etc/fstab
 else
-    echo "✗ EFS mount failed"
+    echo " EFS mount failed"
 fi
 
 ##############################################################################
@@ -110,7 +107,7 @@ if [ -f "$EFS_MOUNT/.app_deployed" ]; then
     echo "Copying from EFS..."
     sudo cp -r $EFS_MOUNT/* /var/www/html/
 else
-    echo "First deployment - cloning from GitHub..."
+    echo "First deployment - cloning from GitHub"
     cd $EFS_MOUNT
     sudo git clone https://github.com/ENOCH-FARODOYE/ENOCH-BLOG.git
     sudo cp -r ENOCH-BLOG/* $EFS_MOUNT/
@@ -126,6 +123,17 @@ else
 fi
 
 ##############################################################################
+#  ALWAYS Update wp-config.php with Current Database Settings
+##############################################################################
+
+echo "Updating wp-config.php with current database settings..."
+sudo sed -i "s/define( *'DB_HOST'[^;]*;/define('DB_HOST', '$RDS_ENDPOINT');/" /var/www/html/wp-config.php
+sudo sed -i "s/define( *'DB_NAME'[^;]*;/define('DB_NAME', '$DB_NAME');/" /var/www/html/wp-config.php
+sudo sed -i "s/define( *'DB_USER'[^;]*;/define('DB_USER', '$DB_USER');/" /var/www/html/wp-config.php
+sudo sed -i "s/define( *'DB_PASSWORD'[^;]*;/define('DB_PASSWORD', '$DB_PASSWORD');/" /var/www/html/wp-config.php
+echo "✓ wp-config.php updated"
+
+##############################################################################
 #  Configure WordPress Permalinks
 ##############################################################################
 
@@ -135,8 +143,8 @@ sudo tee /var/www/html/.htaccess > /dev/null <<'HTACCESS'
 RewriteEngine On
 RewriteBase /
 RewriteRule ^index\.php$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %%{REQUEST_FILENAME} !-f
+RewriteCond %%{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
 </IfModule>
 # END WordPress
@@ -153,7 +161,7 @@ sudo find /var/www -type f -exec chmod 0664 {} \;
 #  Restart Apache
 ##############################################################################
 
-echo "[8] Restarting Apache..."
+echo "Restarting Apache"
 sudo systemctl restart httpd
 
 ##############################################################################
@@ -161,21 +169,21 @@ sudo systemctl restart httpd
 ##############################################################################
 
 if curl -f http://localhost/health.html > /dev/null 2>&1; then
-    echo "✓ Health check: PASS"
+    echo " Health check: PASS"
 else
-    echo "✗ Health check: FAIL"
+    echo " Health check: FAIL"
 fi
 
 if sudo systemctl is-active --quiet httpd; then
-    echo "✓ Apache: Running"
+    echo " Apache: Running"
 else
-    echo "✗ Apache: Not running"
+    echo " Apache: Not running"
 fi
 
 if mountpoint -q $EFS_MOUNT; then
-    echo "✓ EFS: Mounted"
+    echo " EFS: Mounted"
 else
-    echo "✗ EFS: Not mounted"
+    echo " EFS: Not mounted"
 fi
 
 echo "=========================================="

@@ -30,9 +30,9 @@ resource "aws_lb_target_group" "main" {
     unhealthy_threshold = 2
     timeout             = 5
     interval            = 30
-    path                = "/"
+    path                = "/health.html"
     protocol            = "HTTP"
-    matcher             = "200-399"
+    matcher             = "200"
   }
 
   tags = {

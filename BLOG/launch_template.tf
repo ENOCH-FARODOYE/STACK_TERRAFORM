@@ -16,7 +16,9 @@ resource "aws_launch_template" "wordpress" {
     security_groups             = [aws_security_group.ec2.id]
   }
 
-  user_data = base64encode(file("${path.module}/user_data.sh"))
+  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
+  RDS_ENDPOINT = aws_db_instance.wordpress.address
+}))
 
   tag_specifications {
     resource_type = "instance"
