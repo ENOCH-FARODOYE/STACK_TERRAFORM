@@ -28,3 +28,50 @@ output "management_account_id" {
   description = "Management Account ID"
   value       = data.aws_caller_identity.current.account_id
 }
+
+# Networking Outputs
+output "vpc_id" {
+  description = "VPC ID"
+  value       = aws_vpc.main.id
+}
+
+output "subnet_1_id" {
+  description = "Subnet 1 ID"
+  value       = aws_subnet.subnet_1.id
+}
+
+output "subnet_2_id" {
+  description = "Subnet 2 ID"
+  value       = aws_subnet.subnet_2.id
+}
+
+output "internet_gateway_id" {
+  description = "Internet Gateway ID"
+  value       = aws_internet_gateway.main.id
+}
+
+output "route_table_id" {
+  description = "Route Table ID"
+  value       = aws_route_table.main.id
+}
+
+# Security Group Outputs
+output "alb_security_group_id" {
+  description = "ALB Security Group ID"
+  value       = aws_security_group.alb.id
+}
+
+output "ec2_security_group_id" {
+  description = "EC2 Security Group ID"
+  value       = aws_security_group.ec2.id
+}
+
+output "rds_security_group_id" {
+  description = "RDS Security Group ID"
+  value       = aws_security_group.rds.id
+}
+
+output "efs_security_group_id" {
+  description = "EFS Security Group ID"
+  value       = aws_security_group.efs.id
+}
