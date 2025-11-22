@@ -3,6 +3,8 @@
 # ========================================
 
 resource "aws_efs_file_system" "main" {
+  provider = aws.dev
+  
   creation_token = "${var.project_name}-efs"
   encrypted      = true
 
@@ -24,6 +26,8 @@ resource "aws_efs_file_system" "main" {
 
 # Mount Target in Subnet 1
 resource "aws_efs_mount_target" "subnet_1" {
+  provider = aws.dev
+  
   file_system_id  = aws_efs_file_system.main.id
   subnet_id       = aws_subnet.subnet_1.id
   security_groups = [aws_security_group.efs.id]
@@ -31,6 +35,8 @@ resource "aws_efs_mount_target" "subnet_1" {
 
 # Mount Target in Subnet 2
 resource "aws_efs_mount_target" "subnet_2" {
+  provider = aws.dev
+  
   file_system_id  = aws_efs_file_system.main.id
   subnet_id       = aws_subnet.subnet_2.id
   security_groups = [aws_security_group.efs.id]

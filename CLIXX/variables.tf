@@ -41,3 +41,38 @@ variable "management_role_arn" {
   type        = string
   default     = "arn:aws:iam::978820380225:role/SSMParameterAccessRole"
 }
+variable "project_name" {
+  description = "Project name for resource naming"
+  type        = string
+  default     = "clixx"
+}
+
+variable "vpc_cidr" {
+  description = "VPC CIDR block"
+  type        = string
+  default     = "10.1.0.0/16"
+}
+
+variable "subnet_1_cidr" {
+  description = "Subnet 1 CIDR block"
+  type        = string
+  default     = "10.1.1.0/24"
+}
+
+variable "subnet_2_cidr" {
+  description = "Subnet 2 CIDR block"
+  type        = string
+  default     = "10.1.2.0/24"
+}
+
+variable "availability_zone_1" {
+  description = "Availability zone 1"
+  type        = string
+  default     = "us-east-1a"
+}
+
+variable "availability_zone_2" {
+  description = "Availability zone 2"
+  type        = string
+  default     = "us-east-1b"
+}
