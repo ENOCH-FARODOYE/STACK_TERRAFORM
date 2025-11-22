@@ -30,3 +30,14 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+variable "management_account_id" {
+  description = "Management Account ID"
+  type        = string
+  default     = "978820380225"
+}
+
+variable "management_role_arn" {
+  description = "Management Account SSM Role ARN"
+  type        = string
+  default     = "arn:aws:iam::978820380225:role/SSMParameterAccessRole"
+}

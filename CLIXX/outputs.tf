@@ -75,3 +75,13 @@ output "efs_security_group_id" {
   description = "EFS Security Group ID"
   value       = aws_security_group.efs.id
 }
+# EFS Outputs
+output "efs_id" {
+  description = "EFS File System ID"
+  value       = aws_efs_file_system.main.id
+}
+
+output "efs_dns_name" {
+  description = "EFS DNS Name"
+  value       = aws_efs_file_system.main.dns_name
+}
