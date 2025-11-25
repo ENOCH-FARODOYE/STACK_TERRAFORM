@@ -182,3 +182,18 @@ output "private_key_pem" {
   value       = tls_private_key.main.private_key_pem
   sensitive   = true
 }
+# Launch Template Outputs
+output "launch_template_id" {
+  description = "Launch Template ID"
+  value       = aws_launch_template.main.id
+}
+
+output "launch_template_latest_version" {
+  description = "Launch Template Latest Version"
+  value       = aws_launch_template.main.latest_version
+}
+
+output "launch_template_name" {
+  description = "Launch Template Name"
+  value       = aws_launch_template.main.name
+}
