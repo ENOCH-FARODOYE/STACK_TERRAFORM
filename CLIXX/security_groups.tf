@@ -5,7 +5,7 @@
 # ALB Security Group
 resource "aws_security_group" "alb" {
   provider = aws.dev
-  
+
   name        = "${var.project_name}-alb-sg"
   description = "Security group for Application Load Balancer"
   vpc_id      = aws_vpc.main.id
@@ -45,7 +45,7 @@ resource "aws_security_group" "alb" {
 # EC2 Security Group
 resource "aws_security_group" "ec2" {
   provider = aws.dev
-  
+
   name        = "${var.project_name}-ec2-sg"
   description = "Security group for EC2 instances"
   vpc_id      = aws_vpc.main.id
@@ -57,6 +57,15 @@ resource "aws_security_group" "ec2" {
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
+  }
+
+  # SSH from internet (for troubleshooting)
+  ingress {
+    description = "SSH from internet"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # Allow all outbound
@@ -76,7 +85,7 @@ resource "aws_security_group" "ec2" {
 # RDS Security Group
 resource "aws_security_group" "rds" {
   provider = aws.dev
-  
+
   name        = "${var.project_name}-rds-sg"
   description = "Security group for RDS database"
   vpc_id      = aws_vpc.main.id
@@ -107,7 +116,7 @@ resource "aws_security_group" "rds" {
 # EFS Security Group
 resource "aws_security_group" "efs" {
   provider = aws.dev
-  
+
   name        = "${var.project_name}-efs-sg"
   description = "Security group for EFS"
   vpc_id      = aws_vpc.main.id

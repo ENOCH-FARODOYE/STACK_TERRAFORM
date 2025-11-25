@@ -19,7 +19,14 @@ sudo dnf update -y
 sudo dnf install -y aws-cli jq git httpd php php-mysqlnd php-fpm php-json mariadb105 amazon-efs-utils
 
 ##############################################################################
-# 2. Start Apache and Create Health Check
+# 2. Configure Apache DirectoryIndex
+##############################################################################
+
+# Set Apache to prioritize index.php
+sudo sed -i 's/DirectoryIndex index.html/DirectoryIndex index.php index.html/' /etc/httpd/conf/httpd.conf
+
+##############################################################################
+# 3. Start Apache and Create Health Check
 ##############################################################################
 
 sudo systemctl start httpd
@@ -29,7 +36,7 @@ echo "OK" | sudo tee /var/www/html/health.html
 sudo chmod 644 /var/www/html/health.html
 
 ##############################################################################
-# 3. Get AWS Region
+# 4. Get AWS Region
 ##############################################################################
 
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
@@ -37,7 +44,7 @@ REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/la
 echo "Region: $REGION"
 
 ##############################################################################
-# 4. Fetch Configuration from Management Account SSM
+# 5. Fetch Configuration from Management Account SSM
 ##############################################################################
 
 # Management Account ID
@@ -99,7 +106,7 @@ unset AWS_SECRET_ACCESS_KEY
 unset AWS_SESSION_TOKEN
 
 ##############################################################################
-# 5. Mount EFS
+# 6. Mount EFS
 ##############################################################################
 
 EFS_MOUNT="/var/www/html/efs-data"
@@ -113,7 +120,7 @@ else
 fi
 
 ##############################################################################
-# 6. Deploy Application
+# 7. Deploy Application
 ##############################################################################
 
 if [ -f "$EFS_MOUNT/.app_deployed" ]; then
@@ -127,19 +134,19 @@ else
     sudo git clone https://github.com/stackitgit/CliXX_Retail_Repository.git
     sudo cp -r CliXX_Retail_Repository/* $EFS_MOUNT/
     sudo rm -rf CliXX_Retail_Repository
-    
+
     # Configure database
     sudo find $EFS_MOUNT -name "wp-config.php" -exec sed -i "s/define( *'DB_HOST'[^;]*;/define('DB_HOST', '$RDS_ENDPOINT');/" {} \;
     sudo find $EFS_MOUNT -name "wp-config.php" -exec sed -i "s/define( *'DB_NAME'[^;]*;/define('DB_NAME', '$DB_NAME');/" {} \;
     sudo find $EFS_MOUNT -name "wp-config.php" -exec sed -i "s/define( *'DB_USER'[^;]*;/define('DB_USER', '$DB_USER');/" {} \;
     sudo find $EFS_MOUNT -name "wp-config.php" -exec sed -i "s/define( *'DB_PASSWORD'[^;]*;/define('DB_PASSWORD', '$DB_PASSWORD');/" {} \;
-    
+
     sudo touch $EFS_MOUNT/.app_deployed
     sudo cp -r $EFS_MOUNT/* /var/www/html/
 fi
 
 ##############################################################################
-# 7. Configure WordPress Permalinks
+# 8. Configure WordPress Permalinks
 ##############################################################################
 
 # Create .htaccess
@@ -166,13 +173,29 @@ sudo find /var/www -type d -exec chmod 2775 {} \;
 sudo find /var/www -type f -exec chmod 0664 {} \;
 
 ##############################################################################
-# 8. Restart Apache
+# 9. Update WordPress Site URLs
+##############################################################################
+
+echo "Updating WordPress site URLs..."
+mysql -h ${RDS_ENDPOINT%:*} -u ${DB_USER} -p${DB_PASSWORD} ${DB_NAME} <<EOF
+UPDATE wp_options SET option_value = 'http://dev.clixx.enoch-stack.com' WHERE option_name = 'siteurl';
+UPDATE wp_options SET option_value = 'http://dev.clixx.enoch-stack.com' WHERE option_name = 'home';
+EOF
+
+if [ $? -eq 0 ]; then
+    echo "✓ WordPress URLs updated"
+else
+    echo "⚠ Warning: Could not update WordPress URLs"
+fi
+
+##############################################################################
+# 10. Restart Apache
 ##############################################################################
 
 sudo systemctl restart httpd
 
 ##############################################################################
-# 9. Final Verification
+# 11. Final Verification
 ##############################################################################
 
 if curl -f http://localhost/health.html > /dev/null 2>&1; then

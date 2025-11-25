@@ -29,13 +29,13 @@ data "aws_iam_policy_document" "ssm_assume_role" {
     }
   }
 
-  # Allow Dev account EC2 role
+  # Allow Dev account EC2 role - depends on EC2 role existing
   statement {
     effect = "Allow"
 
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.dev_account_id}:role/${var.project_name}-ec2-role"]
+      identifiers = [aws_iam_role.ec2_instance.arn]  # Changed to reference ARN
     }
 
     actions = ["sts:AssumeRole"]
@@ -58,6 +58,8 @@ resource "aws_iam_role" "ssm_parameter_access" {
     Application = "CliXX"
     Purpose     = "Allow Dev account to access CliXX SSM parameters"
   }
+
+  depends_on = [aws_iam_role.ec2_instance]  # Added dependency
 }
 
 # Policy - allows reading and writing SSM parameters

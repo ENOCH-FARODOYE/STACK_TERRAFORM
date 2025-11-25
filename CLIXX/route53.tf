@@ -4,7 +4,7 @@
 
 # Data source - existing hosted zone for enoch-stack.com
 data "aws_route53_zone" "main" {
-  provider = aws.dev
+  provider = aws
 
   name         = "enoch-stack.com"
   private_zone = false
@@ -12,7 +12,7 @@ data "aws_route53_zone" "main" {
 
 # A Record - points dev.clixx subdomain to ALB
 resource "aws_route53_record" "clixx_dev" {
-  provider = aws.dev
+  provider = aws
 
   zone_id = data.aws_route53_zone.main.zone_id
   name    = "dev.clixx.enoch-stack.com"
