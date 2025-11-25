@@ -130,3 +130,18 @@ output "target_group_name" {
   description = "Target Group Name"
   value       = aws_lb_target_group.main.name
 }
+# Route 53 Outputs
+output "route53_fqdn" {
+  description = "Fully Qualified Domain Name"
+  value       = aws_route53_record.clixx_dev.fqdn
+}
+
+output "route53_name" {
+  description = "Route 53 Record Name"
+  value       = aws_route53_record.clixx_dev.name
+}
+
+output "hosted_zone_id" {
+  description = "Route 53 Hosted Zone ID"
+  value       = data.aws_route53_zone.main.zone_id
+}
