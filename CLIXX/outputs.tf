@@ -145,3 +145,24 @@ output "hosted_zone_id" {
   description = "Route 53 Hosted Zone ID"
   value       = data.aws_route53_zone.main.zone_id
 }
+
+# EC2 IAM Outputs
+output "ec2_iam_role_arn" {
+  description = "EC2 IAM Role ARN"
+  value       = aws_iam_role.ec2_instance.arn
+}
+
+output "ec2_iam_role_name" {
+  description = "EC2 IAM Role Name"
+  value       = aws_iam_role.ec2_instance.name
+}
+
+output "ec2_instance_profile_arn" {
+  description = "EC2 Instance Profile ARN"
+  value       = aws_iam_instance_profile.ec2.arn
+}
+
+output "ec2_instance_profile_name" {
+  description = "EC2 Instance Profile Name"
+  value       = aws_iam_instance_profile.ec2.name
+}
