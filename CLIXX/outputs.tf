@@ -197,3 +197,33 @@ output "launch_template_name" {
   description = "Launch Template Name"
   value       = aws_launch_template.main.name
 }
+# Auto Scaling Group Outputs
+output "asg_id" {
+  description = "Auto Scaling Group ID"
+  value       = aws_autoscaling_group.main.id
+}
+
+output "asg_name" {
+  description = "Auto Scaling Group Name"
+  value       = aws_autoscaling_group.main.name
+}
+
+output "asg_arn" {
+  description = "Auto Scaling Group ARN"
+  value       = aws_autoscaling_group.main.arn
+}
+
+output "asg_min_size" {
+  description = "Auto Scaling Group Min Size"
+  value       = aws_autoscaling_group.main.min_size
+}
+
+output "asg_max_size" {
+  description = "Auto Scaling Group Max Size"
+  value       = aws_autoscaling_group.main.max_size
+}
+
+output "asg_desired_capacity" {
+  description = "Auto Scaling Group Desired Capacity"
+  value       = aws_autoscaling_group.main.desired_capacity
+}
