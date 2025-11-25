@@ -166,3 +166,19 @@ output "ec2_instance_profile_name" {
   description = "EC2 Instance Profile Name"
   value       = aws_iam_instance_profile.ec2.name
 }
+# Key Pair Outputs
+output "key_pair_name" {
+  description = "EC2 Key Pair Name"
+  value       = aws_key_pair.main.key_name
+}
+
+output "key_pair_id" {
+  description = "EC2 Key Pair ID"
+  value       = aws_key_pair.main.id
+}
+
+output "private_key_pem" {
+  description = "Private key PEM (save this securely!)"
+  value       = tls_private_key.main.private_key_pem
+  sensitive   = true
+}
