@@ -2,7 +2,6 @@
 
 ##############################################################################
 # Enoch Blog - Bootstrap Script (Terraform Version)
-# Pulls configuration from Management Account SSM Parameter Store
 ##############################################################################
 
 exec > >(tee /var/log/enoch-blog-bootstrap.log)
@@ -123,7 +122,7 @@ else
 fi
 
 ##############################################################################
-#  ALWAYS Update wp-config.php with Current Database Settings
+#  Update wp-config.php with Current Database Settings
 ##############################################################################
 
 echo "Updating wp-config.php with current database settings..."
@@ -165,7 +164,7 @@ echo "Restarting Apache"
 sudo systemctl restart httpd
 
 ##############################################################################
-#  Final Verification
+#  Verification
 ##############################################################################
 
 if curl -f http://localhost/health.html > /dev/null 2>&1; then
