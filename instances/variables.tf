@@ -18,14 +18,14 @@ variable "region"{
 }
 
 variable "vpc_id"{
-    default="vpc-0befa9f9ff5d3b888"
+    default="vpc-04d45fc4ab1954856"
 }
 
 variable "subnets" {
   type = list(string)
   default=[
-    "subnet-0a029f0722b30551b",
-    "subnet-0f809518c9e33b8d3",
+    "subnet-01a9f2006c8724b00",
+    "subnet-004071e8a483963fc",
    ]
 }
 

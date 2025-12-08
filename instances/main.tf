@@ -91,12 +91,12 @@ resource "aws_security_group" "sg_22_80" {
 }
 
 data "aws_ami" "stack" {
-  owners     = ["self"]
-  name_regex = "^"
+  most_recent = true
+  owners      = ["self"]
 
   filter {
     name   = "name"
-    values = ["ami-stack-51"]
+    values = ["ami-stack-*"]
   }
 }
 resource "aws_instance" "application_server" {

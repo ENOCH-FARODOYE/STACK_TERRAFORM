@@ -1,5 +1,5 @@
 variable "aws_source_ami" {
-  default = "amzn2-ami-hvm-2.0.20210326.0-x86_64-gp2"
+  default = "amzn2-ami-hvm-*-x86_64-gp2"
 }
 
 variable "aws_instance_type" {
@@ -17,8 +17,7 @@ variable "component" {
 
 variable "aws_accounts" {
   type = list(string)
-  # default= ["577701061234","560089993749"]
-  default= ["577701061234"]
+  default = ["451873237827"]
 }
 
 variable "ami_regions" {
@@ -35,7 +34,7 @@ data "amazon-ami" "source_ami" {
     name = "${var.aws_source_ami}"
   }
   most_recent = true
-  owners      = ["336528460023","amazon"]
+  owners      = ["451873237827","amazon"]
   region      = "${var.aws_region}"
 }
 
