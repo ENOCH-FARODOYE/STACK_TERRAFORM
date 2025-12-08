@@ -55,9 +55,32 @@ pipeline {
             }
         }
         
+        stage('Wait for Inspector Scan'){
+            steps {
+                script {
+                    echo "Waiting 2 minutes for Inspector v2 to scan the instance..."
+                    sleep(time: 2, unit: 'MINUTES')
+                }
+            }
+        }
+        
+        stage('Get Inspector Findings'){
+            steps {
+                sh '''
+                echo "=== Retrieving Inspector v2 Findings ==="
+                aws inspector2 list-findings --region us-east-1 --max-results 10 > inspector-findings.json || echo "No findings yet"
+                
+                if [ -f inspector-findings.json ]; then
+                    echo "Inspector findings saved to inspector-findings.json"
+                    cat inspector-findings.json
+                fi
+                '''
+            }
+        }
+        
         stage('Pause for Review'){
             steps {
-                input message: 'Instance deployed. Review and approve to destroy.', ok: 'Destroy'
+                input message: 'Instance deployed and scanned. Review findings and approve to destroy.', ok: 'Destroy'
             }
         }
         
