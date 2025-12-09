@@ -93,6 +93,23 @@ pipeline {
             }
         }
     }
+    
+    post {
+        success {
+            slackSend(
+                channel: '#jenkins-builds',
+                color: 'good',
+                message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' completed successfully.\nAMI Created: ${env.AMI_ID}\n(<${env.BUILD_URL}|Open>)"
+            )
+        }
+        failure {
+            slackSend(
+                channel: '#jenkins-builds',
+                color: 'danger',
+                message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' failed.\n(<${env.BUILD_URL}|Open>)"
+            )
+        }
+    }
 }
 
 def getTerraformPath(){
