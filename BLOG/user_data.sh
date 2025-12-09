@@ -71,7 +71,7 @@ DB_PASSWORD=$(aws ssm get-parameter --name "/enoch-blog/db-password" --with-decr
 ALB_DNS=$(aws ssm get-parameter --name "/enoch-blog/alb-dns" --region $REGION --query 'Parameter.Value' --output text 2>/dev/null)
 
 if [ -z "$EFS_ID" ] || [ -z "$RDS_ENDPOINT" ] || [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
-    echo "✗ Failed to retrieve one or more SSM parameters"
+    echo "Failed to retrieve one or more SSM parameters"
     exit 1
 fi
 
@@ -89,7 +89,7 @@ unset AWS_SESSION_TOKEN
 #  Mount EFS
 ##############################################################################
 
-EFS_MOUNT="/var/www/html/efs-data"
+EFS_MOUNT="/var/www/html"
 sudo mkdir -p $EFS_MOUNT
 
 if sudo mount -t efs -o tls $EFS_ID:/ $EFS_MOUNT; then
@@ -131,7 +131,7 @@ sudo sed -i "s/define( *'DB_HOST'[^;]*;/define('DB_HOST', '$RDS_ENDPOINT');/" /v
 sudo sed -i "s/define( *'DB_NAME'[^;]*;/define('DB_NAME', '$DB_NAME');/" /var/www/html/wp-config.php
 sudo sed -i "s/define( *'DB_USER'[^;]*;/define('DB_USER', '$DB_USER');/" /var/www/html/wp-config.php
 sudo sed -i "s/define( *'DB_PASSWORD'[^;]*;/define('DB_PASSWORD', '$DB_PASSWORD');/" /var/www/html/wp-config.php
-echo "✓ wp-config.php updated"
+echo "wp-config.php updated"
 
 ##############################################################################
 #  Configure WordPress Permalinks

@@ -1,162 +1,203 @@
+##############################################################################
+# Map-Based Variables for Multi-Environment Deployment
+##############################################################################
+
 # ========================================
-# General Variables
+# Environment Configuration Map
 # ========================================
-variable "aws_region" {
-  description = "AWS region"
+variable "environment" {
+  description = "Environment name (dev, automation, prod)"
   type        = string
-  default     = "us-east-1"
+
+  validation {
+    condition     = contains(["dev", "automation", "prod"], var.environment)
+    error_message = "Environment must be dev, automation, or prod."
+  }
 }
 
+variable "environment_config" {
+  description = "Environment-specific configuration"
+  type = object({
+    aws_region             = string
+    management_account_id  = string
+    dev_account_id         = string
+    project_name           = string
+    engineering_role_name  = string
+  })
+}
+
+# ========================================
+# Network Configuration Map
+# ========================================
+variable "network_config" {
+  description = "Network configuration for VPC and subnets"
+  type = object({
+    vpc_cidr              = string
+    public_subnet_1_cidr  = string
+    public_subnet_2_cidr  = string
+    private_subnet_1_cidr = string
+    private_subnet_2_cidr = string
+  })
+}
+
+# ========================================
+# Compute Configuration Map (EC2/ASG Properties)
+# ========================================
+variable "compute_config" {
+  description = "EC2 and Auto Scaling configuration"
+  type = object({
+    instance_type             = string
+    key_name_prefix           = string
+    asg_min_size              = number
+    asg_max_size              = number
+    asg_desired_capacity      = number
+    health_check_grace_period = number
+    default_cooldown          = number
+    cpu_target_value          = number
+    alb_request_target_value  = number
+    enable_detailed_monitoring = bool
+  })
+}
+
+# ========================================
+# Database Configuration Map (RDS Properties)
+# ========================================
+variable "database_config" {
+  description = "RDS database configuration"
+  type = object({
+    identifier                 = string
+    snapshot_identifier        = string
+    instance_class             = string
+    engine                     = string
+    engine_version             = string
+    storage_type               = string
+    storage_encrypted          = bool
+    backup_retention_period    = number
+    backup_window              = string
+    maintenance_window         = string
+    skip_final_snapshot        = bool
+    enable_cloudwatch_logs     = list(string)
+    db_name                    = string
+    db_username                = string
+    db_password                = string
+  })
+}
+
+# ========================================
+# Security Group Rules Map
+# ========================================
+variable "security_group_rules" {
+  description = "Security group rules configuration"
+  type = object({
+    alb_ingress_rules = list(object({
+      description = string
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+    }))
+    
+    ec2_ingress_rules = list(object({
+      description     = string
+      from_port       = number
+      to_port         = number
+      protocol        = string
+      cidr_blocks     = optional(list(string))
+      source_sg_type  = optional(string)
+    }))
+    
+    rds_ingress_rules = list(object({
+      description    = string
+      from_port      = number
+      to_port        = number
+      protocol       = string
+      source_sg_type = string
+    }))
+    
+    efs_ingress_rules = list(object({
+      description    = string
+      from_port      = number
+      to_port        = number
+      protocol       = string
+      source_sg_type = string
+    }))
+  })
+}
+
+# ========================================
+# ALB Configuration Map
+# ========================================
+variable "alb_config" {
+  description = "Application Load Balancer configuration"
+  type = object({
+    internal                     = bool
+    enable_deletion_protection   = bool
+    enable_http2                 = bool
+    enable_cross_zone_lb         = bool
+    target_group_port            = number
+    target_group_protocol        = string
+    health_check_path            = string
+    health_check_healthy_threshold   = number
+    health_check_unhealthy_threshold = number
+    health_check_timeout         = number
+    health_check_interval        = number
+    health_check_matcher         = string
+    deregistration_delay         = number
+    stickiness_enabled           = bool
+    stickiness_duration          = number
+  })
+}
+
+# ========================================
+# EFS Configuration Map
+# ========================================
+variable "efs_config" {
+  description = "EFS configuration"
+  type = object({
+    creation_token       = string
+    encrypted            = bool
+    performance_mode     = string
+    throughput_mode      = string
+    transition_to_ia_days = string
+  })
+}
+
+# ========================================
+# Route53 Configuration Map
+# ========================================
+variable "route53_config" {
+  description = "Route53 DNS configuration"
+  type = object({
+    hosted_zone_name       = string
+    hosted_zone_id         = string
+    record_name            = string
+    evaluate_target_health = bool
+  })
+}
+
+# ========================================
+# IAM Configuration Map
+# ========================================
+variable "iam_config" {
+  description = "IAM roles and policies configuration"
+  type = object({
+    ssm_role_name               = string
+    ec2_role_name_suffix        = string
+    ssm_parameter_path_prefix   = string
+  })
+}
+
+# ========================================
+# Common Variables
+# ========================================
 variable "aws_profile" {
-  description = "AWS CLI profile for Management Account"
+  description = "AWS CLI profile name"
   type        = string
+  default     = "default"
 }
 
-variable "management_account_id" {
-  description = "Management Account ID"
-  type        = string
-}
-
-variable "dev_account_id" {
-  description = "Dev Account ID"
-  type        = string
-}
-
-variable "project_name" {
-  description = "Project name for tagging"
-  type        = string
-  default     = "enoch-blog"
-}
-
-# ========================================
-# Network Variables
-# ========================================
-variable "vpc_cidr" {
-  description = "CIDR block for VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "availability_zone_1" {
-  description = "First availability zone"
-  type        = string
-  default     = "us-east-1a"
-}
-
-variable "availability_zone_2" {
-  description = "Second availability zone"
-  type        = string
-  default     = "us-east-1b"
-}
-
-variable "subnet_1_cidr" {
-  description = "CIDR block for subnet 1"
-  type        = string
-  default     = "10.0.1.0/24"
-}
-
-variable "subnet_2_cidr" {
-  description = "CIDR block for subnet 2"
-  type        = string
-  default     = "10.0.2.0/24"
-}
-
-# ========================================
-# Database Variables
-# ========================================
-variable "db_snapshot_identifier" {
-  description = "RDS snapshot to restore from"
-  type        = string
-}
-
-variable "db_instance_class" {
-  description = "RDS instance class"
-  type        = string
-  default     = "db.t3.micro"
-}
-
-variable "db_allocated_storage" {
-  description = "Allocated storage in GB"
-  type        = number
-  default     = 20
-}
-
-variable "db_backup_retention_period" {
-  description = "Backup retention period in days"
-  type        = number
-  default     = 7
-}
-
-variable "db_identifier" {
-  description = "Database identifier"
-  type        = string
-  default     = "enoch-blog-db"
-}
-
-# ========================================
-# Database Credentials Variables
-# ========================================
-variable "db_username" {
-  description = "Database master username"
-  type        = string
-  default     = "admin"
-}
-
-variable "db_name" {
-  description = "Database name"
-  type        = string
-  default     = "wordpressdb"
-}
-
-# ========================================
-# Route53 Variables
-# ========================================
-variable "domain_name" {
-  description = "Domain name for the blog"
-  type        = string
-  default     = "enoch-stack.com"
-}
-
-variable "hosted_zone_id" {
-  description = "Route53 hosted zone ID"
-  type        = string
-  default     = ""
-}
-
-# ========================================
-# EC2 Instance Variables
-# ========================================
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-  default     = "t3.micro"
-}
-
-# ========================================
-# Auto Scaling Variables
-# ========================================
-variable "asg_min_size" {
-  description = "Minimum number of instances"
-  type        = number
-  default     = 2
-}
-
-variable "asg_max_size" {
-  description = "Maximum number of instances"
-  type        = number
-  default     = 4
-}
-
-variable "asg_desired_capacity" {
-  description = "Desired number of instances"
-  type        = number
-  default     = 2
-}
-
-
-
-variable "db_password" {
-  description = "Database master password"
-  type        = string
-  sensitive   = true
+variable "common_tags" {
+  description = "Common tags applied to all resources"
+  type        = map(string)
+  default     = {}
 }

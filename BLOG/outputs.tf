@@ -11,7 +11,7 @@ output "alb_dns_name" {
 # WordPress URL
 output "wordpress_url" {
   description = "WordPress blog URL"
-  value       = "http://${var.domain_name}"
+  value       = "http://${var.route53_config.record_name}"
 }
 
 # RDS Database
@@ -23,7 +23,7 @@ output "rds_endpoint" {
 
 output "database_name" {
   description = "Database name"
-  value       = var.db_name
+  value       = var.database_config.db_name
 }
 
 # EFS File System
@@ -57,7 +57,12 @@ output "vpc_id" {
 }
 
 # Subnets
-output "subnet_ids" {
-  description = "Subnet IDs"
-  value       = [aws_subnet.subnet_1.id, aws_subnet.subnet_2.id]
+output "public_subnet_ids" {
+  description = "Public subnet IDs"
+  value       = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+}
+
+output "private_subnet_ids" {
+  description = "Private subnet IDs"
+  value       = [aws_subnet.private_1.id, aws_subnet.private_2.id]
 }
