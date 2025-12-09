@@ -1,41 +1,190 @@
 pipeline {
-    agent any
+    agent {
+        label 'Enoch'
+    }
+    
     environment {
         PATH = "${PATH}:${getTerraformPath()}"
+        PROJECT_NAME = "CLIXX Infrastructure"
+        TERRAFORM_DIR = "CLIXX"
     }
-    stages{
-        stage('terraform init'){
-            steps {
-                slackSend (color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                dir('CLIXX') {
-                    sh "terraform init"
-                }
-            }
-        }
-        stage('terraform plan'){
-            steps {
-                dir('CLIXX') {
-                    sh "terraform plan -out=tfplan -input=false"
-                }
-            }
-        }
-        stage('Final Deployment Approval') {
+    
+    stages {
+        stage('Initialize Pipeline') {
             steps {
                 script {
-                    def userInput = input(id: 'confirm', message: 'Apply Terraform?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Apply terraform', name: 'confirm'] ])
+                    echo "=========================================="
+                    echo "Starting ${PROJECT_NAME} Deployment"
+                    echo "=========================================="
+                    echo "Job: ${env.JOB_NAME}"
+                    echo "Build Number: #${env.BUILD_NUMBER}"
+                    echo "Runner: Enoch"
+                    echo "Branch: ${env.GIT_BRANCH}"
+                    echo "=========================================="
+                }
+                slackSend(
+                    color: '#0000FF',
+                    channel: '#stackjenkins',
+                    message: """
+                        STARTED: ${PROJECT_NAME}
+                        Job: ${env.JOB_NAME}
+                        Build: #${env.BUILD_NUMBER}
+                        Runner: Enoch
+                        URL: ${env.BUILD_URL}
+                    """.stripIndent()
+                )
+            }
+        }
+        
+        stage('Checkout Code') {
+            steps {
+                echo "Checking out code from repository..."
+                checkout scm
+                echo "Code checkout complete"
+            }
+        }
+        
+        stage('Terraform Init') {
+            steps {
+                script {
+                    echo "Initializing Terraform..."
+                    dir(TERRAFORM_DIR) {
+                        sh "terraform init"
+                    }
+                    echo "Terraform initialized successfully"
+                }
+                slackSend(
+                    color: '#36A64F',
+                    channel: '#stackjenkins',
+                    message: "Terraform Init: SUCCESS"
+                )
+            }
+        }
+        
+        stage('Terraform Validate') {
+            steps {
+                script {
+                    echo "Validating Terraform configuration..."
+                    dir(TERRAFORM_DIR) {
+                        sh "terraform validate"
+                    }
+                    echo "Terraform validation passed"
                 }
             }
         }
-        stage('Terraform ACTION'){
+        
+        stage('Terraform Plan') {
             steps {
-                dir('CLIXX') {
-                    sh "terraform ${env.ACTION} --auto-approve tfplan"
+                script {
+                    echo "Creating Terraform execution plan..."
+                    dir(TERRAFORM_DIR) {
+                        sh "terraform plan -out=tfplan -input=false"
+                    }
+                    echo "Terraform plan created successfully"
+                }
+                slackSend(
+                    color: '#36A64F',
+                    channel: '#stackjenkins',
+                    message: "Terraform Plan: COMPLETE - Ready for approval"
+                )
+            }
+        }
+        
+        stage('Deployment Approval') {
+            steps {
+                script {
+                    echo "Waiting for deployment approval..."
+                    slackSend(
+                        color: '#FFA500',
+                        channel: '#stackjenkins',
+                        message: """
+                            APPROVAL REQUIRED
+                            Job: ${env.JOB_NAME}
+                            Build: #${env.BUILD_NUMBER}
+                            Review the plan and approve to proceed with deployment
+                        """.stripIndent()
+                    )
+                    
+                    def userInput = input(
+                        id: 'confirm',
+                        message: 'Apply Terraform?',
+                        parameters: [
+                            [$class: 'BooleanParameterDefinition', 
+                             defaultValue: false, 
+                             description: 'Apply terraform changes', 
+                             name: 'confirm']
+                        ]
+                    )
+                    echo "Deployment approved"
                 }
             }
+        }
+        
+        stage('Terraform Apply') {
+            steps {
+                script {
+                    echo "Applying Terraform changes..."
+                    dir(TERRAFORM_DIR) {
+                        sh "terraform ${env.ACTION} -auto-approve tfplan"
+                    }
+                    echo "Terraform apply completed successfully"
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            script {
+                echo "=========================================="
+                echo "${PROJECT_NAME} Deployment: SUCCESS"
+                echo "=========================================="
+            }
+            slackSend(
+                color: '#36A64F',
+                channel: '#stackjenkins',
+                message: """
+                    SUCCESS: ${PROJECT_NAME}
+                    Job: ${env.JOB_NAME}
+                    Build: #${env.BUILD_NUMBER}
+                    Runner: Enoch
+                    Duration: ${currentBuild.durationString}
+                    URL: ${env.BUILD_URL}
+                """.stripIndent()
+            )
+        }
+        failure {
+            script {
+                echo "=========================================="
+                echo "${PROJECT_NAME} Deployment: FAILED"
+                echo "=========================================="
+            }
+            slackSend(
+                color: '#FF0000',
+                channel: '#stackjenkins',
+                message: """
+                    FAILED: ${PROJECT_NAME}
+                    Job: ${env.JOB_NAME}
+                    Build: #${env.BUILD_NUMBER}
+                    Runner: Enoch
+                    Duration: ${currentBuild.durationString}
+                    URL: ${env.BUILD_URL}
+                    Check console output for details
+                """.stripIndent()
+            )
+        }
+        always {
+            script {
+                echo "=========================================="
+                echo "Cleaning up workspace..."
+                echo "=========================================="
+            }
+            cleanWs()
         }
     }
 }
-def getTerraformPath(){
-    def tfHome= tool name: 'terraform-14', type: 'terraform'
+
+def getTerraformPath() {
+    def tfHome = tool name: 'terraform-14', type: 'terraform'
     return tfHome
 }
