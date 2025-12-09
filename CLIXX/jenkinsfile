@@ -87,7 +87,7 @@ pipeline {
             }
         }
         
-        stage('Configure AWS Credentials') {
+        stage('Terraform Init') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'aws-credentials',
@@ -95,22 +95,12 @@ pipeline {
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                 )]) {
                     script {
-                        echo "AWS credentials configured"
-                        env.AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID
-                        env.AWS_SECRET_ACCESS_KEY = AWS_SECRET_ACCESS_KEY
+                        echo "Initializing Terraform..."
+                        dir(TERRAFORM_DIR) {
+                            sh "terraform init"
+                        }
+                        echo "Terraform initialized successfully"
                     }
-                }
-            }
-        }
-        
-        stage('Terraform Init') {
-            steps {
-                script {
-                    echo "Initializing Terraform..."
-                    dir(TERRAFORM_DIR) {
-                        sh "terraform init"
-                    }
-                    echo "Terraform initialized successfully"
                 }
                 slackSend(
                     color: '#36A64F',
@@ -122,24 +112,36 @@ pipeline {
         
         stage('Terraform Validate') {
             steps {
-                script {
-                    echo "Validating Terraform configuration..."
-                    dir(TERRAFORM_DIR) {
-                        sh "terraform validate"
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    script {
+                        echo "Validating Terraform configuration..."
+                        dir(TERRAFORM_DIR) {
+                            sh "terraform validate"
+                        }
+                        echo "Terraform validation passed"
                     }
-                    echo "Terraform validation passed"
                 }
             }
         }
         
         stage('Terraform Plan') {
             steps {
-                script {
-                    echo "Creating Terraform execution plan for ${params.ENVIRONMENT}..."
-                    dir(TERRAFORM_DIR) {
-                        sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    script {
+                        echo "Creating Terraform execution plan for ${params.ENVIRONMENT}..."
+                        dir(TERRAFORM_DIR) {
+                            sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                        }
+                        echo "Terraform plan created successfully"
                     }
-                    echo "Terraform plan created successfully"
                 }
                 slackSend(
                     color: '#36A64F',
@@ -183,12 +185,18 @@ pipeline {
         
         stage('Terraform Apply') {
             steps {
-                script {
-                    echo "Applying Terraform changes to ${params.ENVIRONMENT}..."
-                    dir(TERRAFORM_DIR) {
-                        sh "terraform ${params.ACTION} -auto-approve tfplan"
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    script {
+                        echo "Applying Terraform changes to ${params.ENVIRONMENT}..."
+                        dir(TERRAFORM_DIR) {
+                            sh "terraform ${params.ACTION} -auto-approve tfplan"
+                        }
+                        echo "Terraform ${params.ACTION} completed successfully"
                     }
-                    echo "Terraform ${params.ACTION} completed successfully"
                 }
             }
         }
