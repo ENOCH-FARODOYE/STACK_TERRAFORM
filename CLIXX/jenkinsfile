@@ -3,6 +3,19 @@ pipeline {
         label 'Enoch'
     }
     
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'automation', 'prod'],
+            description: 'Select the environment to deploy'
+        )
+        choice(
+            name: 'ACTION',
+            choices: ['apply', 'destroy'],
+            description: 'Select Terraform action'
+        )
+    }
+    
     environment {
         PATH = "${PATH}:${getTerraformPath()}"
         PROJECT_NAME = "CLIXX Infrastructure"
@@ -19,6 +32,8 @@ pipeline {
                     echo "Job: ${env.JOB_NAME}"
                     echo "Build Number: #${env.BUILD_NUMBER}"
                     echo "Runner: Enoch"
+                    echo "Environment: ${params.ENVIRONMENT}"
+                    echo "Action: ${params.ACTION}"
                     echo "Branch: ${env.GIT_BRANCH}"
                     echo "=========================================="
                 }
@@ -30,6 +45,8 @@ pipeline {
                         Job: ${env.JOB_NAME}
                         Build: #${env.BUILD_NUMBER}
                         Runner: Enoch
+                        Environment: ${params.ENVIRONMENT}
+                        Action: ${params.ACTION}
                         URL: ${env.BUILD_URL}
                     """.stripIndent()
                 )
@@ -41,6 +58,32 @@ pipeline {
                 echo "Checking out code from repository..."
                 checkout scm
                 echo "Code checkout complete"
+            }
+        }
+        
+        stage('Verify Environment Files') {
+            steps {
+                script {
+                    echo "Verifying environment files..."
+                    dir(TERRAFORM_DIR) {
+                        sh """
+                            echo "Current directory:"
+                            pwd
+                            echo ""
+                            echo "Listing environments directory:"
+                            ls -la environments/
+                            echo ""
+                            echo "Looking for: environments/${params.ENVIRONMENT}.tfvars"
+                            if [ -f "environments/${params.ENVIRONMENT}.tfvars" ]; then
+                                echo "File found!"
+                            else
+                                echo "ERROR: File not found!"
+                                exit 1
+                            fi
+                        """
+                    }
+                    echo "Environment file verified"
+                }
             }
         }
         
@@ -76,9 +119,9 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 script {
-                    echo "Creating Terraform execution plan..."
+                    echo "Creating Terraform execution plan for ${params.ENVIRONMENT}..."
                     dir(TERRAFORM_DIR) {
-                        sh "terraform plan -out=tfplan -input=false"
+                        sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
                     }
                     echo "Terraform plan created successfully"
                 }
@@ -101,17 +144,19 @@ pipeline {
                             APPROVAL REQUIRED
                             Job: ${env.JOB_NAME}
                             Build: #${env.BUILD_NUMBER}
+                            Environment: ${params.ENVIRONMENT}
+                            Action: ${params.ACTION}
                             Review the plan and approve to proceed with deployment
                         """.stripIndent()
                     )
                     
                     def userInput = input(
                         id: 'confirm',
-                        message: 'Apply Terraform?',
+                        message: "Apply Terraform ${params.ACTION} to ${params.ENVIRONMENT}?",
                         parameters: [
                             [$class: 'BooleanParameterDefinition', 
                              defaultValue: false, 
-                             description: 'Apply terraform changes', 
+                             description: 'Confirm terraform changes', 
                              name: 'confirm']
                         ]
                     )
@@ -123,11 +168,11 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 script {
-                    echo "Applying Terraform changes..."
+                    echo "Applying Terraform changes to ${params.ENVIRONMENT}..."
                     dir(TERRAFORM_DIR) {
-                        sh "terraform ${env.ACTION} -auto-approve tfplan"
+                        sh "terraform ${params.ACTION} -auto-approve tfplan"
                     }
-                    echo "Terraform apply completed successfully"
+                    echo "Terraform ${params.ACTION} completed successfully"
                 }
             }
         }
@@ -148,6 +193,8 @@ pipeline {
                     Job: ${env.JOB_NAME}
                     Build: #${env.BUILD_NUMBER}
                     Runner: Enoch
+                    Environment: ${params.ENVIRONMENT}
+                    Action: ${params.ACTION}
                     Duration: ${currentBuild.durationString}
                     URL: ${env.BUILD_URL}
                 """.stripIndent()
@@ -167,6 +214,8 @@ pipeline {
                     Job: ${env.JOB_NAME}
                     Build: #${env.BUILD_NUMBER}
                     Runner: Enoch
+                    Environment: ${params.ENVIRONMENT}
+                    Action: ${params.ACTION}
                     Duration: ${currentBuild.durationString}
                     URL: ${env.BUILD_URL}
                     Check console output for details
