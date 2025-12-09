@@ -97,16 +97,16 @@ pipeline {
     post {
         success {
             slackSend(
-                channel: '#jenkins-builds',
+                channel: '#stackjenkins',
                 color: 'good',
-                message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' completed successfully.\nAMI Created: ${env.AMI_ID}\n(<${env.BUILD_URL}|Open>)"
+                message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' completed successfully. AMI Created: ${env.AMI_ID}. Build URL: ${env.BUILD_URL}"
             )
         }
         failure {
             slackSend(
-                channel: '#jenkins-builds',
+                channel: '#stackjenkins',
                 color: 'danger',
-                message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' failed.\n(<${env.BUILD_URL}|Open>)"
+                message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' failed. Build URL: ${env.BUILD_URL}"
             )
         }
     }
