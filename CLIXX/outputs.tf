@@ -37,12 +37,12 @@ output "vpc_id" {
 
 output "subnet_1_id" {
   description = "Subnet 1 ID"
-  value       = aws_subnet.subnet_1.id
+  value       = aws_subnet.public_1.id
 }
 
 output "subnet_2_id" {
   description = "Subnet 2 ID"
-  value       = aws_subnet.subnet_2.id
+  value       = aws_subnet.public_2.id
 }
 
 output "internet_gateway_id" {
@@ -52,7 +52,7 @@ output "internet_gateway_id" {
 
 output "route_table_id" {
   description = "Route Table ID"
-  value       = aws_route_table.main.id
+  value       = aws_route_table.public.id
 }
 
 # Security Group Outputs
