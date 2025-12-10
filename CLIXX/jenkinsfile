@@ -138,7 +138,11 @@ pipeline {
                     script {
                         echo "Creating Terraform execution plan for ${params.ENVIRONMENT}..."
                         dir(TERRAFORM_DIR) {
-                            sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                            if (params.ACTION == 'destroy') {
+                                sh "terraform plan -destroy -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                            } else {
+                                sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                            }
                         }
                         echo "Terraform plan created successfully"
                     }
@@ -193,7 +197,7 @@ pipeline {
                     script {
                         echo "Applying Terraform changes to ${params.ENVIRONMENT}..."
                         dir(TERRAFORM_DIR) {
-                            sh "terraform ${params.ACTION} -auto-approve tfplan"
+                            sh "terraform apply -auto-approve tfplan"
                         }
                         echo "Terraform ${params.ACTION} completed successfully"
                     }
