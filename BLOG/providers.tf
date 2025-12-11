@@ -5,7 +5,7 @@
 # Dev Account Provider (default)
 provider "aws" {
   region  = var.environment_config.aws_region
-  profile = var.aws_profile
+  #profile = var.aws_profile
 
   assume_role {
     role_arn     = "arn:aws:iam::${var.environment_config.dev_account_id}:role/${var.environment_config.engineering_role_name}"
@@ -26,7 +26,7 @@ provider "aws" {
 provider "aws" {
   alias   = "management"
   region  = var.environment_config.aws_region
-  profile = var.aws_profile
+  #profile = var.aws_profile
 
   default_tags {
     tags = merge(
