@@ -1,0 +1,40 @@
+
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+
+# Packer files
+packer_cache/
+*.box
+packer.log
+
+# Jenkins workspace files
+*.log
+
+# Backup files
+*.backup
+*.bak
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# SSH keys
+*.pem
+*.key
+ses_key
+ses_key.pub
+
