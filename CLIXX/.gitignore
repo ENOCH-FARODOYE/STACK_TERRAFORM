@@ -13,3 +13,4 @@ environments/secrets.tfvars
 **/secrets.tfvars
 *.swp
 backup/
+environments/*.tfvars
