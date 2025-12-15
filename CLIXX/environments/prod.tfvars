@@ -178,7 +178,5 @@ common_tags = {
   CostCenter  = "Engineering"
 }
 
-aws_profile = "default"
 
 # Database password
-db_password = "W3lcome123"

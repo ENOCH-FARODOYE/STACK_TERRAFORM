@@ -890,18 +890,3 @@ resource "aws_ssm_parameter" "db_username" {
   }
 }
 
-# Database Password (SecureString)
-resource "aws_ssm_parameter" "db_password" {
-  provider = aws
-
-  name        = "${var.iam_config.ssm_parameter_path_prefix}/rds/password"
-  description = "${var.environment_config.project_name} Database Password"
-  type        = "SecureString"
-  value       = var.db_password
-  overwrite   = true
-
-  tags = {
-    Name        = "${var.environment_config.project_name}-db-password"
-    Application = "CliXX"
-  }
-}

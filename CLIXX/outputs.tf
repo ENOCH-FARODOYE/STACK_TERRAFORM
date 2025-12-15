@@ -9,7 +9,6 @@ output "ssm_parameter_arns" {
     rds_endpoint = aws_ssm_parameter.rds_endpoint.arn
     db_name      = aws_ssm_parameter.db_name.arn
     db_username  = aws_ssm_parameter.db_username.arn
-    db_password  = aws_ssm_parameter.db_password.arn
   }
   sensitive = true
 }

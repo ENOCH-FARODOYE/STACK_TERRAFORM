@@ -41,3 +41,9 @@ data "aws_route53_zone" "main" {
   name         = var.route53_config.hosted_zone_name
   private_zone = false
 }
+
+# Read DB password from SSM Parameter Store
+data "aws_ssm_parameter" "db_password" {
+  name            = "/clixx/${var.environment}/db_password"
+  with_decryption = true
+}

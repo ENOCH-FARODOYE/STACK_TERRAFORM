@@ -187,20 +187,7 @@ variable "iam_config" {
   })
 }
 
-# ========================================
-# Sensitive Variables
-# ========================================
-variable "db_password" {
-  description = "Database master password"
-  type        = string
-  sensitive   = true
-}
 
-variable "aws_profile" {
-  description = "AWS CLI profile name"
-  type        = string
-  default     = "default"
-}
 
 # ========================================
 # Common Tags

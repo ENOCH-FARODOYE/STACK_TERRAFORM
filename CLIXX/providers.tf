@@ -4,7 +4,7 @@
 # Management Account Provider
 provider "aws" {
   region  = var.environment_config.aws_region
-  # profile = var.aws_profile  # Commented out for Jenkins - uses environment variables
+  # profile = var.aws_profile 
   default_tags {
     tags = merge(
       var.common_tags,

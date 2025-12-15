@@ -188,7 +188,5 @@ common_tags = {
 }
 
 # AWS Profile
-aws_profile = "default"
 
 # Database password
-db_password = "W3lcome123"
