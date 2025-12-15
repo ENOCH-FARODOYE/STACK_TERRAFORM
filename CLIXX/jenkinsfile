@@ -37,19 +37,6 @@ pipeline {
                     echo "Branch: ${env.GIT_BRANCH}"
                     echo "=========================================="
                 }
-                # slackSend(
-                    color: '#0000FF',
-                    channel: '#stackjenkins',
-                    message: """
-                        STARTED: ${PROJECT_NAME}
-                        Job: ${env.JOB_NAME}
-                        Build: #${env.BUILD_NUMBER}
-                        Runner: Enoch
-                        Environment: ${params.ENVIRONMENT}
-                        Action: ${params.ACTION}
-                        URL: ${env.BUILD_URL}
-                    """.stripIndent()
-                )
             }
         }
 
@@ -96,11 +83,6 @@ pipeline {
                     }
                     echo "Terraform initialized successfully"
                 }
-                # slackSend(
-                    color: '#36A64F',
-                    channel: '#stackjenkins',
-                    message: "Terraform Init: SUCCESS"
-                )
             }
         }
 
@@ -129,11 +111,6 @@ pipeline {
                     }
                     echo "Terraform plan created successfully"
                 }
-                # slackSend(
-                    color: '#36A64F',
-                    channel: '#stackjenkins',
-                    message: "Terraform Plan: COMPLETE - Ready for approval"
-                )
             }
         }
 
@@ -141,19 +118,6 @@ pipeline {
             steps {
                 script {
                     echo "Waiting for deployment approval..."
-                    # slackSend(
-                        color: '#FFA500',
-                        channel: '#stackjenkins',
-                        message: """
-                            APPROVAL REQUIRED
-                            Job: ${env.JOB_NAME}
-                            Build: #${env.BUILD_NUMBER}
-                            Environment: ${params.ENVIRONMENT}
-                            Action: ${params.ACTION}
-                            Review the plan and approve to proceed with deployment
-                        """.stripIndent()
-                    )
-
                     def userInput = input(
                         id: 'confirm',
                         message: "Apply Terraform ${params.ACTION} to ${params.ENVIRONMENT}?",
@@ -189,20 +153,6 @@ pipeline {
                 echo "${PROJECT_NAME} Deployment: SUCCESS"
                 echo "=========================================="
             }
-            # slackSend(
-                color: '#36A64F',
-                channel: '#stackjenkins',
-                message: """
-                    SUCCESS: ${PROJECT_NAME}
-                    Job: ${env.JOB_NAME}
-                    Build: #${env.BUILD_NUMBER}
-                    Runner: Enoch
-                    Environment: ${params.ENVIRONMENT}
-                    Action: ${params.ACTION}
-                    Duration: ${currentBuild.durationString}
-                    URL: ${env.BUILD_URL}
-                """.stripIndent()
-            )
         }
         failure {
             script {
@@ -210,21 +160,6 @@ pipeline {
                 echo "${PROJECT_NAME} Deployment: FAILED"
                 echo "=========================================="
             }
-            # slackSend(
-                color: '#FF0000',
-                channel: '#stackjenkins',
-                message: """
-                    FAILED: ${PROJECT_NAME}
-                    Job: ${env.JOB_NAME}
-                    Build: #${env.BUILD_NUMBER}
-                    Runner: Enoch
-                    Environment: ${params.ENVIRONMENT}
-                    Action: ${params.ACTION}
-                    Duration: ${currentBuild.durationString}
-                    URL: ${env.BUILD_URL}
-                    Check console output for details
-                """.stripIndent()
-            )
         }
         always {
             script {
