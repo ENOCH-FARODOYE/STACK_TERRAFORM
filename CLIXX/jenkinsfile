@@ -18,82 +18,28 @@ pipeline {
 
     environment {
         PATH = "${PATH}:${getTerraformPath()}"
-        PROJECT_NAME = "CLIXX Infrastructure"
         TERRAFORM_DIR = "CLIXX"
     }
 
     stages {
-        stage('Initialize Pipeline') {
-            steps {
-                script {
-                    echo "=========================================="
-                    echo "Starting ${PROJECT_NAME} Deployment"
-                    echo "=========================================="
-                    echo "Job: ${env.JOB_NAME}"
-                    echo "Build Number: #${env.BUILD_NUMBER}"
-                    echo "Runner: Enoch"
-                    echo "Environment: ${params.ENVIRONMENT}"
-                    echo "Action: ${params.ACTION}"
-                    echo "Branch: ${env.GIT_BRANCH}"
-                    echo "=========================================="
-                }
-            }
-        }
-
         stage('Checkout Code') {
             steps {
-                echo "Checking out code from repository..."
                 checkout scm
-                echo "Code checkout complete"
-            }
-        }
-
-        stage('Verify Environment Files') {
-            steps {
-                script {
-                    echo "Verifying environment files..."
-                    dir(TERRAFORM_DIR) {
-                        sh """
-                            echo "Current directory:"
-                            pwd
-                            echo ""
-                            echo "Listing environments directory:"
-                            ls -la environments/
-                            echo ""
-                            echo "Looking for: environments/${params.ENVIRONMENT}.tfvars"
-                            if [ -f "environments/${params.ENVIRONMENT}.tfvars" ]; then
-                                echo "✓ File found!"
-                            else
-                                echo "✗ ERROR: File not found!"
-                                exit 1
-                            fi
-                        """
-                    }
-                    echo "Environment file verified"
-                }
             }
         }
 
         stage('Terraform Init') {
             steps {
-                script {
-                    echo "Initializing Terraform..."
-                    dir(TERRAFORM_DIR) {
-                        sh "terraform init"
-                    }
-                    echo "Terraform initialized successfully"
+                dir(TERRAFORM_DIR) {
+                    sh "terraform init"
                 }
             }
         }
 
         stage('Terraform Validate') {
             steps {
-                script {
-                    echo "Validating Terraform configuration..."
-                    dir(TERRAFORM_DIR) {
-                        sh "terraform validate"
-                    }
-                    echo "Terraform validation passed"
+                dir(TERRAFORM_DIR) {
+                    sh "terraform validate"
                 }
             }
         }
@@ -101,72 +47,37 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 script {
-                    echo "Creating Terraform execution plan for ${params.ENVIRONMENT}..."
                     dir(TERRAFORM_DIR) {
                         if (params.ACTION == 'destroy') {
-                            sh "terraform plan -destroy -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                            sh "terraform plan -destroy -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan"
                         } else {
-                            sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                            sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan"
                         }
                     }
-                    echo "Terraform plan created successfully"
                 }
             }
         }
 
-        stage('Deployment Approval') {
+        stage('Approval') {
             steps {
-                script {
-                    echo "Waiting for deployment approval..."
-                    def userInput = input(
-                        id: 'confirm',
-                        message: "Apply Terraform ${params.ACTION} to ${params.ENVIRONMENT}?",
-                        parameters: [
-                            [$class: 'BooleanParameterDefinition',
-                             defaultValue: false,
-                             description: 'Confirm terraform changes',
-                             name: 'confirm']
-                        ]
-                    )
-                    echo "Deployment approved"
-                }
+                input(
+                    message: "Apply Terraform ${params.ACTION} to ${params.ENVIRONMENT}?",
+                    ok: 'Proceed'
+                )
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                script {
-                    echo "Applying Terraform changes to ${params.ENVIRONMENT}..."
-                    dir(TERRAFORM_DIR) {
-                        sh "terraform apply -auto-approve tfplan"
-                    }
-                    echo "Terraform ${params.ACTION} completed successfully"
+                dir(TERRAFORM_DIR) {
+                    sh "terraform apply -auto-approve tfplan"
                 }
             }
         }
     }
 
     post {
-        success {
-            script {
-                echo "=========================================="
-                echo "${PROJECT_NAME} Deployment: SUCCESS"
-                echo "=========================================="
-            }
-        }
-        failure {
-            script {
-                echo "=========================================="
-                echo "${PROJECT_NAME} Deployment: FAILED"
-                echo "=========================================="
-            }
-        }
         always {
-            script {
-                echo "=========================================="
-                echo "Cleaning up workspace..."
-                echo "=========================================="
-            }
             cleanWs()
         }
     }
