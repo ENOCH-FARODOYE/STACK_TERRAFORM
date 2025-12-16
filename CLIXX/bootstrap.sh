@@ -161,6 +161,20 @@ if [ ! -f "$DEPLOY_FLAG" ]; then
 else
     echo "Application already deployed"
 fi
+
+##############################################################################
+# Update wp-config.php with Current SSM Parameters
+##############################################################################
+
+if [ -f "$EFS_MOUNT/wp-config.php" ]; then
+    echo "Updating wp-config.php with current SSM parameters"
+    sudo sed -i "s/define( *'DB_HOST'[^;]*;/define('DB_HOST', '$RDS_ENDPOINT');/" $EFS_MOUNT/wp-config.php
+    sudo sed -i "s/define( *'DB_NAME'[^;]*;/define('DB_NAME', '$DB_NAME');/" $EFS_MOUNT/wp-config.php
+    sudo sed -i "s/define( *'DB_USER'[^;]*;/define('DB_USER', '$DB_USER');/" $EFS_MOUNT/wp-config.php
+    sudo sed -i "s/define( *'DB_PASSWORD'[^;]*;/define('DB_PASSWORD', '$DB_PASSWORD');/" $EFS_MOUNT/wp-config.php
+    echo "wp-config.php updated with SSM parameters"
+fi
+
 ##############################################################################
 #  Configure WordPress Permalinks
 ##############################################################################
