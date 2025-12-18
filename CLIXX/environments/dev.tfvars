@@ -19,11 +19,19 @@ environment_config = {
 # Network Configuration
 # ========================================
 network_config = {
-  vpc_cidr              = "10.1.0.0/16"
-  public_subnet_1_cidr  = "10.1.1.0/24"
-  public_subnet_2_cidr  = "10.1.2.0/24"
-  private_subnet_1_cidr = "10.1.10.0/24"
-  private_subnet_2_cidr = "10.1.11.0/24"
+  vpc_cidr                       = "10.1.0.0/16"
+  public_subnet_1_cidr           = "10.1.1.0/24"
+  public_subnet_2_cidr           = "10.1.2.0/24"
+  private_app_subnet_1_cidr      = "10.1.10.0/24"
+  private_app_subnet_2_cidr      = "10.1.11.0/24"
+  private_mysql_subnet_1_cidr    = "10.1.20.0/24"
+  private_mysql_subnet_2_cidr    = "10.1.21.0/24"
+  private_oracle_subnet_1_cidr   = "10.1.30.0/23"
+  private_oracle_subnet_2_cidr   = "10.1.32.0/23"
+  private_java_db_subnet_1_cidr  = "10.1.40.0/24"
+  private_java_db_subnet_2_cidr  = "10.1.41.0/24"
+  private_java_app_subnet_1_cidr = "10.1.50.0/24"
+  private_java_app_subnet_2_cidr = "10.1.51.0/24"
 }
 
 # ========================================

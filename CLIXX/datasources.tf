@@ -10,10 +10,10 @@ data "aws_availability_zones" "available" {
 data "aws_ami" "amazon_linux_2023" {
   provider    = aws.dev
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["451873237827"]
   filter {
     name   = "name"
-    values = ["al2023-ami-*-x86_64"]
+    values = ["ami-stack-*"]
   }
   filter {
     name   = "virtualization-type"

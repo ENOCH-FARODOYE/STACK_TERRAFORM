@@ -32,11 +32,19 @@ variable "environment_config" {
 variable "network_config" {
   description = "Network configuration for VPC and subnets"
   type = object({
-    vpc_cidr              = string
-    public_subnet_1_cidr  = string
-    public_subnet_2_cidr  = string
-    private_subnet_1_cidr = string
-    private_subnet_2_cidr = string
+    vpc_cidr                       = string
+    public_subnet_1_cidr           = string
+    public_subnet_2_cidr           = string
+    private_app_subnet_1_cidr      = string
+    private_app_subnet_2_cidr      = string
+    private_mysql_subnet_1_cidr    = string
+    private_mysql_subnet_2_cidr    = string
+    private_oracle_subnet_1_cidr   = string
+    private_oracle_subnet_2_cidr   = string
+    private_java_db_subnet_1_cidr  = string
+    private_java_db_subnet_2_cidr  = string
+    private_java_app_subnet_1_cidr = string
+    private_java_app_subnet_2_cidr = string
   })
 }
 

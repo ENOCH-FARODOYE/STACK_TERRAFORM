@@ -335,7 +335,7 @@ resource "aws_db_subnet_group" "main" {
   provider = aws.dev
 
   name       = "${var.environment_config.project_name}-db-subnet-group"
-  subnet_ids = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  subnet_ids = [aws_subnet.private_mysql_1.id, aws_subnet.private_mysql_2.id]
 
   tags = {
     Name = "${var.environment_config.project_name}-db-subnet-group"
@@ -409,7 +409,7 @@ resource "aws_efs_mount_target" "subnet_1" {
   provider = aws.dev
 
   file_system_id  = aws_efs_file_system.main.id
-  subnet_id       = aws_subnet.public_1.id
+  subnet_id       = aws_subnet.private_app_1.id
   security_groups = [aws_security_group.efs.id]
 }
 
@@ -417,7 +417,7 @@ resource "aws_efs_mount_target" "subnet_2" {
   provider = aws.dev
 
   file_system_id  = aws_efs_file_system.main.id
-  subnet_id       = aws_subnet.public_2.id
+  subnet_id       = aws_subnet.private_app_2.id
   security_groups = [aws_security_group.efs.id]
 }
 
@@ -578,7 +578,7 @@ resource "aws_autoscaling_group" "main" {
   provider = aws.dev
 
   name                      = "${var.environment_config.project_name}-asg"
-  vpc_zone_identifier       = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+  vpc_zone_identifier       = [aws_subnet.private_app_1.id, aws_subnet.private_app_2.id]
   target_group_arns         = [aws_lb_target_group.main.arn]
   health_check_type         = "ELB"
   health_check_grace_period = var.compute_config.health_check_grace_period
