@@ -29,26 +29,14 @@ data "amazon-ami" "source_ami" {
   owners      = ["529206289534","amazon"]
   region      = "${var.aws_region}"
 }
-# locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
-# source blocks are generated from your builders; a source can be referenced in
-# build blocks. A build block runs provisioners and post-processors on a
-# source.
+
 source "amazon-ebs" "amazon_ebs" {
-  assume_role {
-    role_arn     = "arn:aws:iam::529206289534:role/Engineer"
-    session_name = "packer-ami-build"
-  }
   ami_name                = "${var.ami_name}"
   ami_regions             = "${var.ami_regions}"
   ami_users               = "${var.aws_accounts}"
   snapshot_users          = "${var.aws_accounts}"
   encrypt_boot            = false
   instance_type           = "${var.aws_instance_type}"
-  
-  # VPC Configuration - critical for SSH connectivity
-  vpc_id                  = "vpc-058151e894407c72e"
-  subnet_id               = "subnet-0b5910db40ee70bc7"
-  associate_public_ip_address = true
   
   launch_block_device_mappings {
     delete_on_termination = true
@@ -60,10 +48,10 @@ source "amazon-ebs" "amazon_ebs" {
   region                  = "${var.aws_region}"
   source_ami              = "${data.amazon-ami.source_ami.id}"
   ssh_pty                 = true
-  ssh_timeout             = "10m"
+  ssh_timeout             = "5m"
   ssh_username            = "ec2-user"
 }
-# a build block invokes sources and runs provisioning steps on them.
+
 build {
   sources = ["source.amazon-ebs.amazon_ebs"]
   provisioner "shell" {
