@@ -15,8 +15,8 @@ echo "=========================================="
 # Install Required Packages
 ##############################################################################
 
-sudo dnf update -y
-sudo dnf install -y aws-cli jq git httpd php php-mysqlnd php-fpm php-json mariadb105 amazon-efs-utils
+sudo yum update -y
+sudo yum install -y aws-cli jq git httpd php php-mysqlnd php-fpm php-json mariadb amazon-efs-utils
 
 ##############################################################################
 # Configure Apache
