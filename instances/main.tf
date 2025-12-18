@@ -80,7 +80,7 @@ resource "aws_security_group" "sg_22_80" {
 }
 data "aws_ami" "stack" {
   most_recent = true
-  owners      = ["self"]
+  owners      = ["451873237827"]
   filter {
     name   = "name"
     values = ["ami-stack-*"]
@@ -94,7 +94,7 @@ resource "aws_instance" "application_server" {
   associate_public_ip_address = true
   key_name = aws_key_pair.Stack_KP.key_name
   tags = {
-    Name = "Test_Instance"
+    Name = "Packer_Instance"
   }
 }
 output "public_ip" {
