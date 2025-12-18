@@ -12,7 +12,7 @@ variable "component" {
 }
 variable "aws_accounts" {
   type = list(string)
-  default = ["451873237827"]
+  default = ["529206289534"]
 }
 variable "ami_regions" {
   type = list(string)
@@ -26,7 +26,7 @@ data "amazon-ami" "source_ami" {
     name = "${var.aws_source_ami}"
   }
   most_recent = true
-  owners      = ["451873237827","amazon"]
+  owners      = ["529206289534","amazon"]
   region      = "${var.aws_region}"
 }
 # locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
@@ -34,9 +34,10 @@ data "amazon-ami" "source_ami" {
 # build blocks. A build block runs provisioners and post-processors on a
 # source.
 source "amazon-ebs" "amazon_ebs" {
-  # assume_role {
-  #   role_arn     = "arn:aws:iam::560089993749:role/Engineer"
-  # }
+  assume_role {
+    role_arn     = "arn:aws:iam::529206289534:role/Engineer"
+    session_name = "packer-ami-build"
+  }
   ami_name                = "${var.ami_name}"
   ami_regions             = "${var.ami_regions}"
   ami_users               = "${var.aws_accounts}"

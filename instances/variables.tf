@@ -6,33 +6,27 @@
 #   description = "CIDR block for the subnet"
 #   default     = "10.1.0.0/24"
 # }
-
 variable "environment_tag" {
   description = "Environment tag"
   default     = "Learn"
 }
-
 variable "region"{
   description = "The region Terraform deploys your instance"
   default     = "us-east-1"
 }
-
 variable "vpc_id"{
-    default="vpc-04d45fc4ab1954856"
+    default="vpc-058151e894407c72e"
 }
-
 variable "subnets" {
   type = list(string)
   default=[
-    "subnet-01a9f2006c8724b00",
-    "subnet-004071e8a483963fc",
+    "subnet-0b5910db40ee70bc7",
+    "subnet-091e3f27d8a7e62f7",
    ]
 }
-
 variable "PATH_TO_PUBLIC_KEY" {
   default = "ses_key.pub"
 }
-
 variable "ami_name" {
-  default = "ami-stack-51"
+  default = "ami-stack-14"
 }
