@@ -16,9 +16,12 @@ terraform {
     }
   }
 }
-
 provider "aws" {
   region = var.region
+  assume_role {
+    role_arn     = "arn:aws:iam::451873237827:role/Engineer"
+    session_name = "terraform-packer-pipeline"
+  }
 }
 
 # resource "aws_vpc" "vpc" {

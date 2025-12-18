@@ -12,7 +12,7 @@ variable "component" {
 }
 variable "aws_accounts" {
   type = list(string)
-  default = ["529206289534"]
+  default = ["451873237827"]
 }
 variable "ami_regions" {
   type = list(string)
@@ -26,7 +26,7 @@ data "amazon-ami" "source_ami" {
     name = "${var.aws_source_ami}"
   }
   most_recent = true
-  owners      = ["529206289534","amazon"]
+  owners      = ["451873237827","amazon"]
   region      = "${var.aws_region}"
 }
 # locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
