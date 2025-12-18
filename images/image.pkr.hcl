@@ -1,54 +1,38 @@
 variable "aws_source_ami" {
   default = "amzn2-ami-hvm-*-x86_64-gp2"
 }
-
 variable "aws_instance_type" {
   default = "t2.small"
 }
-
 variable "ami_name" {
-  default = "ami-stack-51"
+  default = "ami-stack-14"
 }
-
 variable "component" {
   default = "clixx"
 }
-
-
 variable "aws_accounts" {
   type = list(string)
-  default = ["451873237827"]
+  default = ["529206289534"]
 }
-
 variable "ami_regions" {
   type = list(string)
   default =["us-east-1"]
 }
-
 variable "aws_region" {
   default = "us-east-1"
 }
-
 data "amazon-ami" "source_ami" {
   filters = {
     name = "${var.aws_source_ami}"
   }
   most_recent = true
-  owners      = ["451873237827","amazon"]
+  owners      = ["529206289534","amazon"]
   region      = "${var.aws_region}"
 }
-
-
-
-
 # locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
-
-
 # source blocks are generated from your builders; a source can be referenced in
 # build blocks. A build block runs provisioners and post-processors on a
 # source.
-
-
 source "amazon-ebs" "amazon_ebs" {
   # assume_role {
   #   role_arn     = "arn:aws:iam::560089993749:role/Engineer"
@@ -72,8 +56,6 @@ source "amazon-ebs" "amazon_ebs" {
   ssh_timeout             = "5m"
   ssh_username            = "ec2-user"
 }
-
-
 # a build block invokes sources and runs provisioning steps on them.
 build {
   sources = ["source.amazon-ebs.amazon_ebs"]
