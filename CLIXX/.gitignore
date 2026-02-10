@@ -1,0 +1,15 @@
+# Terraform files
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Key files
+*.pem
+clixx-key.pem
+
+# Secrets
+environments/secrets.tfvars
+**/secrets.tfvars
+*.swp
+backup/

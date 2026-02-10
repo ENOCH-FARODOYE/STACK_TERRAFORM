@@ -1,0 +1,267 @@
+pipeline {
+    agent {
+        label 'Enoch'
+    }
+    
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'automation', 'prod'],
+            description: 'Select the environment to deploy'
+        )
+        choice(
+            name: 'ACTION',
+            choices: ['apply', 'destroy'],
+            description: 'Select Terraform action'
+        )
+    }
+    
+    environment {
+        PATH = "${PATH}:${getTerraformPath()}"
+        PROJECT_NAME = "BLOG Infrastructure"
+        TERRAFORM_DIR = "BLOG"
+    }
+    
+    stages {
+        stage('Initialize Pipeline') {
+            steps {
+                script {
+                    echo "=========================================="
+                    echo "Starting ${PROJECT_NAME} Deployment"
+                    echo "=========================================="
+                    echo "Job: ${env.JOB_NAME}"
+                    echo "Build Number: #${env.BUILD_NUMBER}"
+                    echo "Runner: Enoch"
+                    echo "Environment: ${params.ENVIRONMENT}"
+                    echo "Action: ${params.ACTION}"
+                    echo "Branch: ${env.GIT_BRANCH}"
+                    echo "=========================================="
+                }
+                slackSend(
+                    color: '#0000FF',
+                    channel: '#stackjenkins',
+                    message: """
+                        STARTED: ${PROJECT_NAME}
+                        Job: ${env.JOB_NAME}
+                        Build: #${env.BUILD_NUMBER}
+                        Runner: Enoch
+                        Environment: ${params.ENVIRONMENT}
+                        Action: ${params.ACTION}
+                        URL: ${env.BUILD_URL}
+                    """.stripIndent()
+                )
+            }
+        }
+        
+        stage('Checkout Code') {
+            steps {
+                echo "Checking out code from repository..."
+                checkout scm
+                echo "Code checkout complete"
+            }
+        }
+        
+        stage('Verify Environment Files') {
+            steps {
+                script {
+                    echo "Verifying environment files..."
+                    dir(TERRAFORM_DIR) {
+                        sh """
+                            echo "Current directory:"
+                            pwd
+                            echo ""
+                            echo "Listing environments directory:"
+                            ls -la environments/
+                            echo ""
+                            echo "Looking for: environments/${params.ENVIRONMENT}.tfvars"
+                            if [ -f "environments/${params.ENVIRONMENT}.tfvars" ]; then
+                                echo "File found!"
+                            else
+                                echo "ERROR: File not found!"
+                                exit 1
+                            fi
+                        """
+                    }
+                    echo "Environment file verified"
+                }
+            }
+        }
+        
+        stage('Terraform Init') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    script {
+                        echo "Initializing Terraform..."
+                        dir(TERRAFORM_DIR) {
+                            sh "terraform init"
+                        }
+                        echo "Terraform initialized successfully"
+                    }
+                }
+                slackSend(
+                    color: '#36A64F',
+                    channel: '#stackjenkins',
+                    message: "Terraform Init: SUCCESS"
+                )
+            }
+        }
+        
+        stage('Terraform Validate') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    script {
+                        echo "Validating Terraform configuration..."
+                        dir(TERRAFORM_DIR) {
+                            sh "terraform validate"
+                        }
+                        echo "Terraform validation passed"
+                    }
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    script {
+                        echo "Creating Terraform execution plan for ${params.ENVIRONMENT}..."
+                        dir(TERRAFORM_DIR) {
+                            if (params.ACTION == 'destroy') {
+                                sh "terraform plan -destroy -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                            } else {
+                                sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan -input=false"
+                            }
+                        }
+                        echo "Terraform plan created successfully"
+                    }
+                }
+                slackSend(
+                    color: '#36A64F',
+                    channel: '#stackjenkins',
+                    message: "Terraform Plan: COMPLETE - Ready for approval"
+                )
+            }
+        }
+        
+        stage('Deployment Approval') {
+            steps {
+                script {
+                    echo "Waiting for deployment approval..."
+                    slackSend(
+                        color: '#FFA500',
+                        channel: '#stackjenkins',
+                        message: """
+                            APPROVAL REQUIRED
+                            Job: ${env.JOB_NAME}
+                            Build: #${env.BUILD_NUMBER}
+                            Environment: ${params.ENVIRONMENT}
+                            Action: ${params.ACTION}
+                            Review the plan and approve to proceed with deployment
+                        """.stripIndent()
+                    )
+                    
+                    def userInput = input(
+                        id: 'confirm',
+                        message: "Apply Terraform ${params.ACTION} to ${params.ENVIRONMENT}?",
+                        parameters: [
+                            [$class: 'BooleanParameterDefinition', 
+                             defaultValue: false, 
+                             description: 'Confirm terraform changes', 
+                             name: 'confirm']
+                        ]
+                    )
+                    echo "Deployment approved"
+                }
+            }
+        }
+        
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-credentials',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    script {
+                        echo "Applying Terraform changes to ${params.ENVIRONMENT}..."
+                        dir(TERRAFORM_DIR) {
+                            sh "terraform apply -auto-approve tfplan"
+                        }
+                        echo "Terraform ${params.ACTION} completed successfully"
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            script {
+                echo "=========================================="
+                echo "${PROJECT_NAME} Deployment: SUCCESS"
+                echo "=========================================="
+            }
+            slackSend(
+                color: '#36A64F',
+                channel: '#stackjenkins',
+                message: """
+                    SUCCESS: ${PROJECT_NAME}
+                    Job: ${env.JOB_NAME}
+                    Build: #${env.BUILD_NUMBER}
+                    Runner: Enoch
+                    Environment: ${params.ENVIRONMENT}
+                    Action: ${params.ACTION}
+                    Duration: ${currentBuild.durationString}
+                    URL: ${env.BUILD_URL}
+                """.stripIndent()
+            )
+        }
+        failure {
+            script {
+                echo "=========================================="
+                echo "${PROJECT_NAME} Deployment: FAILED"
+                echo "=========================================="
+            }
+            slackSend(
+                color: '#FF0000',
+                channel: '#stackjenkins',
+                message: """
+                    FAILED: ${PROJECT_NAME}
+                    Job: ${env.JOB_NAME}
+                    Build: #${env.BUILD_NUMBER}
+                    Runner: Enoch
+                    Environment: ${params.ENVIRONMENT}
+                    Action: ${params.ACTION}
+                    Duration: ${currentBuild.durationString}
+                    URL: ${env.BUILD_URL}
+                    Check console output for details
+                """.stripIndent()
+            )
+        }
+        always {
+            script {
+                echo "=========================================="
+                echo "Cleaning up workspace..."
+                echo "=========================================="
+            }
+            cleanWs()
+        }
+    }
+}
+
+def getTerraformPath() {
+    def tfHome = tool name: 'terraform-14', type: 'terraform'
+    return tfHome
+}

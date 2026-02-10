@@ -1,0 +1,89 @@
+pipeline {
+    agent {
+        label 'Enoch'
+    }
+
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'automation', 'prod'],
+            description: 'Select the environment to deploy'
+        )
+        choice(
+            name: 'ACTION',
+            choices: ['apply', 'destroy'],
+            description: 'Select Terraform action'
+        )
+    }
+
+    environment {
+        PATH = "${PATH}:${getTerraformPath()}"
+        TERRAFORM_DIR = "CLIXX"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                dir(TERRAFORM_DIR) {
+                    sh "terraform init"
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                dir(TERRAFORM_DIR) {
+                    sh "terraform validate"
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    dir(TERRAFORM_DIR) {
+                        if (params.ACTION == 'destroy') {
+                            sh "terraform plan -destroy -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan"
+                        } else {
+                            sh "terraform plan -var-file=environments/${params.ENVIRONMENT}.tfvars -out=tfplan"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Approval') {
+            steps {
+                input(
+                    message: "Apply Terraform ${params.ACTION} to ${params.ENVIRONMENT}?",
+                    ok: 'Proceed'
+                )
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir(TERRAFORM_DIR) {
+                    sh "terraform apply -auto-approve tfplan"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+
+def getTerraformPath() {
+    def tfHome = tool name: 'terraform-14', type: 'terraform'
+    return tfHome
+}

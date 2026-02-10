@@ -8,3 +8,5 @@ crash.log
 
 # VS Code
 .vscode/
+BLOG-backup/
+*-backup/

@@ -1,0 +1,13 @@
+# Terraform files
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Key files
+*.pem
+*-key.pem
+
+# Old tfvars
+terraform.tfvars
+backup/
