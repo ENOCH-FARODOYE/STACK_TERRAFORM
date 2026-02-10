@@ -60,8 +60,7 @@ STACK_TERRAFORM/
 
 The primary application infrastructure featuring a sophisticated 12-subnet VPC design for multi-tier, multi-database workloads:
 
-![12-Subnet VPC Architecture](diagrams/vpc-architecture.png)
-*12-subnet VPC architecture spanning 2 availability zones with separated tiers for applications, MySQL, Oracle, and Java workloads*
+![12-Subnet VPC Architecture](12-Subnet-VPC_Subtask_Architectural_Diagram_Enoch_Farodoye.drawio.png)*12-subnet VPC architecture spanning 2 availability zones with separated tiers for applications, MySQL, Oracle, and Java workloads*
 
 **Network Architecture:**
 - 12 subnets across 2 availability zones (us-east-1a, us-east-1b)
